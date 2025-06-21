@@ -4,7 +4,14 @@
 
 ## 简介
 
-这个MCP服务器为RBDC数据库连接库提供了标准的MCP工具接口，**默认支持四种数据库类型**（SQLite、MySQL、PostgreSQL、MSSQL）。由于官方的 [`rmcp` Rust SDK](https://github.com/modelcontextprotocol/rust-sdk) 还在开发中，我们实现了一个简化但完整的MCP协议版本。
+这个MCP服务器为RBDC数据库连接库提供了标准的MCP工具接口，**默认支持四种数据库类型**（SQLite、MySQL、PostgreSQL、MSSQL）。项目使用官方的 [`rmcp` Rust SDK](https://github.com/modelcontextprotocol/rust-sdk) 构建，确保与MCP协议规范的完全兼容性。
+
+## 技术栈
+
+- **MCP SDK**: 官方 `rmcp` Rust SDK（最新版本）
+- **数据库**: RBDC (Rust DataBase Connectivity)
+- **传输协议**: Stdio (标准输入输出)
+- **协议版本**: MCP 2024-11-05
 
 ## 功能特性
 
@@ -33,6 +40,11 @@
 - **MSSQL**: `mssql://user:password@host:port/database`
 
 ## 安装和运行
+
+### 依赖要求
+
+- Rust 1.70+ (建议使用最新稳定版)
+- Cargo
 
 ### 构建
 
@@ -213,7 +225,7 @@ Claude 会自动调用 `sql_exec` 工具执行插入操作。
 
 ## MCP 协议使用
 
-这个服务器实现了标准的MCP协议，使用JSON-RPC 2.0格式通过stdin/stdout通信。
+这个服务器使用官方 rmcp SDK 实现标准的MCP协议，通过JSON-RPC 2.0格式在stdin/stdout上通信。
 
 ### 初始化
 
@@ -227,7 +239,8 @@ Claude 会自动调用 `sql_exec` 工具执行插入操作。
     "client_info": {
       "name": "test-client",
       "version": "1.0.0"
-    }
+    },
+    "capabilities": {}
   }
 }
 ```
@@ -320,7 +333,7 @@ Claude 会自动调用 `sql_exec` 工具执行插入操作。
   "jsonrpc": "2.0",
   "error": {
     "code": -32603,
-    "message": "Internal error: 查询执行失败: table 'users' doesn't exist"
+    "message": "SQL查询失败: table 'users' doesn't exist"
   },
   "id": 3
 }
@@ -362,38 +375,52 @@ Claude 会自动调用 `sql_exec` 工具执行插入操作。
 3. **手动测试MCP协议**
 ```bash
 # 启动服务器并手动发送JSON消息
-echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocol_version":"2024-11-05","client_info":{"name":"test","version":"1.0.0"}}}' | ./rbdc-mcp-server --database-url "sqlite://test.db"
+echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocol_version":"2024-11-05","client_info":{"name":"test","version":"1.0.0"},"capabilities":{}}}' | ./rbdc-mcp-server --database-url "sqlite://test.db"
 ```
 
 ## 开发说明
 
-### 特性
+### 架构特性
 
+- ✅ **官方SDK**: 使用官方 rmcp SDK，确保协议兼容性
 - ✅ **多数据库支持**: 默认支持 SQLite、MySQL、PostgreSQL、MSSQL 四种数据库
 - ✅ **MCP 协议兼容**: 完整实现 MCP 2024-11-05 协议规范
 - ✅ **参数化查询**: 安全的SQL参数处理，防止SQL注入
 - ✅ **连接池管理**: 高效的数据库连接复用
 - ✅ **错误处理**: 标准的JSON-RPC 2.0错误响应
-- ✅ **日志支持**: 可配置的日志级别
+- ✅ **结构化日志**: 基于 tracing 的结构化日志系统
+
+### 技术实现
+
+- **MCP架构**: 基于官方 rmcp SDK 的工具注册和处理机制
+- **异步处理**: 全面使用 tokio 异步运行时
+- **类型安全**: 使用 schemars 进行 JSON Schema 验证
+- **内存安全**: Rust 语言保证内存安全和线程安全
+
+### 扩展性
+
+项目采用模块化设计，易于扩展：
+
+- `db_manager.rs`: 数据库连接和池管理
+- `handler.rs`: MCP 工具实现和服务器处理逻辑
+- `main.rs`: 应用程序入口和配置
 
 ### 未来计划
 
-当官方的 `rmcp` SDK 正式发布后，我们计划：
+使用官方SDK后，我们计划：
 
-1. 迁移到官方SDK
-2. 添加更多高级功能（资源、提示等）
-3. 支持更多传输协议（WebSocket、SSE等）
-4. 添加更完善的错误处理
-
-### 当前限制
-
-- 只支持stdio传输
-- 简化的MCP协议实现
-- 基本的错误处理
+1. ✅ **已完成**: 迁移到官方 rmcp SDK
+2. 🔄 **进行中**: 添加更多高级功能（资源、提示等）
+3. 📅 **计划中**: 支持更多传输协议（WebSocket、SSE等）
+4. 📅 **计划中**: 添加数据库连接缓存和优化
 
 ### 贡献
 
-欢迎提交Issue和Pull Request来改进这个项目。
+欢迎提交Issue和Pull Request来改进这个项目。请确保：
+
+- 遵循 Rust 代码风格
+- 添加适当的测试
+- 更新相关文档
 
 ## 许可证
 
