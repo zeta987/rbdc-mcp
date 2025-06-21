@@ -19,7 +19,7 @@ cargo build --release
 
 ## 使用
 
-### 启动服务器
+### 启动服务器(手动，可不执行)
 ```bash
 # SQLite
 rbdc-mcp --database-url "sqlite://./database.db"
