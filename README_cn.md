@@ -2,6 +2,10 @@
 
 基于 [Model Context Protocol (MCP)](https://modelcontextprotocol.io) 的数据库服务器，支持 SQLite、MySQL、PostgreSQL、MSSQL 四种数据库。
 
+**🇺🇸 English Documentation**: [README.md](./README.md)
+
+**🇨🇳 中文文档 / Chinese Documentation**: [README_cn.md](./README_cn.md)
+
 ## 安装
 
 ### 方式一：从 Git 仓库安装（推荐）

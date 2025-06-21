@@ -11,24 +11,24 @@ use crate::db_manager::DatabaseManager;
 use crate::handler::RbdcDatabaseHandler;
 use rmcp::{ServiceExt, transport::stdio};
 
-/// 命令行参数
+/// Command line arguments
 #[derive(Parser, Debug)]
 #[command(name = "rbdc-mcp")]
-#[command(about = "RBDC MCP服务器 - 提供SQL查询和修改工具")]
+#[command(about = "RBDC MCP Server - Provides SQL query and modification tools")]
 struct Args {
-    /// 数据库连接URL
+    /// Database connection URL
     #[arg(short, long)]
     database_url: String,
 
-    /// 最大连接数
+    /// Maximum number of connections
     #[arg(long, default_value = "10")]
     max_connections: u64,
 
-    /// 连接超时时间（秒）
+    /// Connection timeout in seconds
     #[arg(long, default_value = "30")]
     timeout: u64,
 
-    /// 日志级别
+    /// Log level
     #[arg(long, default_value = "info")]
     log_level: String,
 }
@@ -37,7 +37,7 @@ struct Args {
 async fn main() -> Result<(), anyhow::Error> {
     let args = Args::parse();
 
-    // 初始化日志
+    // Initialize logging
     tracing_subscriber::fmt()
         .with_env_filter(
             EnvFilter::from_default_env()
@@ -48,30 +48,30 @@ async fn main() -> Result<(), anyhow::Error> {
         .with_ansi(false)
         .init();
 
-    info!("启动RBDC MCP服务器");
-    info!("数据库URL: {}", args.database_url);
+    info!("Starting RBDC MCP Server");
+    info!("Database URL: {}", args.database_url);
 
-    // 创建数据库管理器
+    // Create database manager
     let db_manager = DatabaseManager::new(&args.database_url)
         .map_err(|e| anyhow::Error::msg(e.to_string()))?;
     
-    // 配置连接池
+    // Configure connection pool
     db_manager.configure_pool(args.max_connections, args.timeout).await;
     
-    // 测试数据库连接
+    // Test database connection
     db_manager.test_connection().await
-        .map_err(|e| anyhow::Error::msg(format!("数据库连接测试失败: {}", e)))?;
+        .map_err(|e| anyhow::Error::msg(format!("Database connection test failed: {}", e)))?;
     
-    info!("数据库连接测试成功");
+    info!("Database connection test successful");
 
-    // 创建RBDC数据库处理器
+    // Create RBDC database handler
     let handler = RbdcDatabaseHandler::new(Arc::new(db_manager));
 
-    info!("启动RBDC MCP服务器...");
+    info!("Starting RBDC MCP Server...");
     
-    // 启动服务器
+    // Start server
     let service = handler.serve(stdio()).await.inspect_err(|e| {
-        error!("服务器启动失败: {:?}", e);
+        error!("Server startup failed: {:?}", e);
     })?;
 
     service.waiting().await?;

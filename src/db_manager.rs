@@ -1,6 +1,6 @@
-//! 数据库连接管理器
+//! Database connection manager
 //! 
-//! 负责管理不同类型的数据库连接
+//! Responsible for managing different types of database connections
 
 use anyhow::{anyhow, Result};
 use rbdc::db::{Connection, Driver};
@@ -10,7 +10,7 @@ use rbs::Value;
 use std::sync::Arc;
 use std::time::Duration;
 
-/// 支持的数据库类型
+/// Supported database types
 #[derive(Debug, Clone)]
 pub enum DatabaseType {
     SQLite,
@@ -30,19 +30,19 @@ impl DatabaseType {
         } else if url.starts_with("mssql://") || url.starts_with("sqlserver://") {
             Ok(DatabaseType::MSSQL)
         } else {
-            Err(anyhow!("不支持的数据库URL格式: {}", url))
+            Err(anyhow!("Unsupported database URL format: {}", url))
         }
     }
 }
 
-/// 数据库连接管理器
+/// Database connection manager
 pub struct DatabaseManager {
     pool: Arc<FastPool>,
     db_type: DatabaseType,
 }
 
 impl DatabaseManager {
-    /// 创建新的数据库管理器
+    /// Create a new database manager
     pub fn new(url: &str) -> Result<Self> {
         let db_type = DatabaseType::from_url(url)?;
         
@@ -62,56 +62,56 @@ impl DatabaseManager {
         })
     }
 
-    /// 配置连接池参数
+    /// Configure connection pool parameters
     pub async fn configure_pool(&self, max_connections: u64, timeout_seconds: u64) {
         self.pool.set_max_open_conns(max_connections).await;
         self.pool.set_timeout(Some(Duration::from_secs(timeout_seconds))).await;
     }
 
-    /// 执行查询，返回结果集
+    /// Execute query and return result set
     pub async fn execute_query(&self, sql: &str, params: Vec<Value>) -> Result<Vec<Value>> {
         let mut conn = self.pool.get().await
-            .map_err(|e| anyhow!("获取数据库连接失败: {}", e))?;
+            .map_err(|e| anyhow!("Failed to get database connection: {}", e))?;
             
         let result = conn.get_values(sql, params).await
-            .map_err(|e| anyhow!("执行查询失败: {}", e))?;
+            .map_err(|e| anyhow!("Query execution failed: {}", e))?;
             
         Ok(result)
     }
 
-    /// 执行修改操作（INSERT, UPDATE, DELETE等）
+    /// Execute modification operations (INSERT, UPDATE, DELETE, etc.)
     pub async fn execute_modification(&self, sql: &str, params: Vec<Value>) -> Result<serde_json::Value> {
         let mut conn = self.pool.get().await
-            .map_err(|e| anyhow!("获取数据库连接失败: {}", e))?;
+            .map_err(|e| anyhow!("Failed to get database connection: {}", e))?;
             
         let result = conn.exec(sql, params).await
-            .map_err(|e| anyhow!("执行修改操作失败: {}", e))?;
+            .map_err(|e| anyhow!("Modification operation failed: {}", e))?;
             
-        // 返回操作结果的JSON表示
+        // Return JSON representation of operation result
         Ok(serde_json::json!({
             "rows_affected": result.rows_affected,
             "last_insert_id": result.last_insert_id
         }))
     }
 
-    /// 获取数据库类型
+    /// Get database type
     pub fn database_type(&self) -> &DatabaseType {
         &self.db_type
     }
 
-    /// 获取连接池状态
+    /// Get connection pool state
     pub async fn get_pool_state(&self) -> serde_json::Value {
         let state = self.pool.state().await;
         serde_json::to_value(state).unwrap_or_else(|_| serde_json::json!({}))
     }
 
-    /// 测试数据库连接
+    /// Test database connection
     pub async fn test_connection(&self) -> Result<()> {
         let mut conn = self.pool.get().await
-            .map_err(|e| anyhow!("获取数据库连接失败: {}", e))?;
+            .map_err(|e| anyhow!("Failed to get database connection: {}", e))?;
             
         conn.ping().await
-            .map_err(|e| anyhow!("数据库连接测试失败: {}", e))?;
+            .map_err(|e| anyhow!("Database connection test failed: {}", e))?;
             
         Ok(())
     }

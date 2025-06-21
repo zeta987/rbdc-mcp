@@ -15,18 +15,18 @@ pub struct RbdcDatabaseHandler {
 
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
 pub struct SqlQueryParams {
-    /// 要执行的SQL查询语句
+    /// SQL query statement to execute
     sql: String,
-    /// SQL参数数组，可选
+    /// SQL parameter array, optional
     #[serde(default)]
     params: Vec<serde_json::Value>,
 }
 
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
 pub struct SqlExecParams {
-    /// 要执行的SQL修改语句
+    /// SQL modification statement to execute
     sql: String,
-    /// SQL参数数组，可选
+    /// SQL parameter array, optional
     #[serde(default)]
     params: Vec<serde_json::Value>,
 }
@@ -43,41 +43,41 @@ impl RbdcDatabaseHandler {
             .collect()
     }
 
-    #[tool(description = "执行SQL查询并返回结果")]
+    #[tool(description = "Execute SQL query and return results")]
     async fn sql_query(&self, #[tool(aggr)] SqlQueryParams { sql, params }: SqlQueryParams) -> Result<CallToolResult, McpError> {
-        // 转换参数类型从serde_json::Value到rbs::Value
+        // Convert parameter types from serde_json::Value to rbs::Value
         let rbs_params = self.convert_params(&params);
         
         match self.db_manager.execute_query(&sql, rbs_params).await {
             Ok(results) => {
                 let json_str = serde_json::to_string_pretty(&results)
-                    .map_err(|e| McpError::internal_error(format!("序列化结果失败: {}", e), None))?;
+                    .map_err(|e| McpError::internal_error(format!("Result serialization failed: {}", e), None))?;
                 Ok(CallToolResult::success(vec![Content::text(json_str)]))
             }
-            Err(e) => Err(McpError::internal_error(format!("SQL查询失败: {}", e), None))
+            Err(e) => Err(McpError::internal_error(format!("SQL query failed: {}", e), None))
         }
     }
 
-    #[tool(description = "执行SQL修改语句（INSERT/UPDATE/DELETE）")]
+    #[tool(description = "Execute SQL modification statements (INSERT/UPDATE/DELETE)")]
     async fn sql_exec(&self, #[tool(aggr)] SqlExecParams { sql, params }: SqlExecParams) -> Result<CallToolResult, McpError> {
-        // 转换参数类型从serde_json::Value到rbs::Value
+        // Convert parameter types from serde_json::Value to rbs::Value
         let rbs_params = self.convert_params(&params);
         
         match self.db_manager.execute_modification(&sql, rbs_params).await {
             Ok(result) => {
                 let result_str = serde_json::to_string_pretty(&result)
-                    .map_err(|e| McpError::internal_error(format!("序列化结果失败: {}", e), None))?;
+                    .map_err(|e| McpError::internal_error(format!("Result serialization failed: {}", e), None))?;
                 Ok(CallToolResult::success(vec![Content::text(result_str)]))
             }
-            Err(e) => Err(McpError::internal_error(format!("SQL执行失败: {}", e), None))
+            Err(e) => Err(McpError::internal_error(format!("SQL execution failed: {}", e), None))
         }
     }
 
-    #[tool(description = "获取数据库连接池状态信息")]
+    #[tool(description = "Get database connection pool status information")]
     async fn db_status(&self) -> Result<CallToolResult, McpError> {
         let status = self.db_manager.get_pool_state().await;
         let json_str = serde_json::to_string_pretty(&status)
-            .map_err(|e| McpError::internal_error(format!("序列化状态失败: {}", e), None))?;
+            .map_err(|e| McpError::internal_error(format!("Status serialization failed: {}", e), None))?;
         Ok(CallToolResult::success(vec![Content::text(json_str)]))
     }
 }
@@ -94,7 +94,7 @@ impl ServerHandler for RbdcDatabaseHandler {
                 name: "RBDC MCP Server".to_string(),
                 version: "1.0.0".to_string(),
             },
-            instructions: Some("RBDC数据库MCP服务器，提供SQL查询、执行和状态检查工具。支持 sql_query（查询）、sql_exec（修改）和 db_status（状态检查）工具。".to_string()),
+            instructions: Some("RBDC database MCP server providing SQL query, execution and status check tools. Supports sql_query (query), sql_exec (modification) and db_status (status check) tools.".to_string()),
         }
     }
 
