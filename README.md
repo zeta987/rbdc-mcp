@@ -69,6 +69,14 @@ Edit the configuration file:
 }
 ```
 
+### Setup Guide
+
+Step 1: Configure the Claude Desktop settings
+![Step 1: Configuration](./step1.png)
+
+Step 2: Use database commands in Claude
+![Step 2: Usage](./step2.png)
+
 ### Available Tools
 
 After configuration, you can use the following features in Claude Desktop:

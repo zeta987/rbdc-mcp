@@ -71,6 +71,14 @@ rbdc-mcp --database-url "mssql://user:password@localhost:1433/database"
 }
 ```
 
+### 设置指南
+
+步骤 1: 配置 Claude Desktop 设置
+![步骤 1: 配置](./step1.png)
+
+步骤 2: 在 Claude 中使用数据库命令
+![步骤 2: 使用](./step2.png)
+
 ### 可用工具
 
 配置完成后，在 Claude Desktop 中可以使用以下功能：
