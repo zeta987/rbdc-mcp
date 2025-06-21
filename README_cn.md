@@ -6,6 +6,14 @@
 
 **🇨🇳 中文文档 / Chinese Documentation**: [README_cn.md](./README_cn.md)
 
+## 优势
+
+- **多数据库支持**: 通过统一接口无缝使用 SQLite、MySQL、PostgreSQL 和 MSSQL
+- **AI 集成**: 通过模型上下文协议 (MCP) 与 Claude AI 原生集成
+- **零配置**: 自动管理数据库连接和资源
+- **安全性**: 通过 AI 驱动的自然语言查询控制对数据库的访问
+- **简单易用**: 使用自然语言查询和修改数据库，无需编写 SQL
+
 ## 安装
 
 ### 方式一：从 Git 仓库安装（推荐）

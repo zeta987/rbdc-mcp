@@ -4,6 +4,14 @@ A database server based on [Model Context Protocol (MCP)](https://modelcontextpr
 
 **🇨🇳 中文文档 / Chinese Documentation**: [README_cn.md](./README_cn.md)
 
+## Advantages
+
+- **Multiple Database Support**: Seamlessly work with SQLite, MySQL, PostgreSQL, and MSSQL using a unified interface
+- **AI Integration**: Native integration with Claude AI through the Model Context Protocol
+- **Zero Configuration**: Automatic management of database connections and resources
+- **Security**: Controlled access to your database through AI-driven natural language queries
+- **Simplicity**: Use natural language to query and modify your database without writing SQL
+
 ## Installation
 
 ### Method 1: Install from Git Repository (Recommended)
