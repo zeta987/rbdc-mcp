@@ -27,6 +27,14 @@ cargo build --release
 # Executable located at target/release/rbdc-mcp
 ```
 
+### Setup Guide
+
+Step 1: Configure the Claude Desktop settings
+![Step 1: Configuration](./step1.png)
+
+Step 2: Use database commands in Claude
+![Step 2: Usage](./step2.png)
+
 ## Usage
 
 ### Start the Server (Manual, Optional)
@@ -76,14 +84,6 @@ Edit the configuration file:
   }
 }
 ```
-
-### Setup Guide
-
-Step 1: Configure the Claude Desktop settings
-![Step 1: Configuration](./step1.png)
-
-Step 2: Use database commands in Claude
-![Step 2: Usage](./step2.png)
 
 ### Available Tools
 

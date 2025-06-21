@@ -29,6 +29,14 @@ cargo build --release
 # 可执行文件位于 target/release/rbdc-mcp
 ```
 
+### 设置指南
+
+步骤 1: 配置 Claude Desktop 设置
+![步骤 1: 配置](./step1.png)
+
+步骤 2: 在 Claude 中使用数据库命令
+![步骤 2: 使用](./step2.png)
+
 ## 使用
 
 ### 启动服务器(手动，可不执行)
@@ -78,14 +86,6 @@ rbdc-mcp --database-url "mssql://user:password@localhost:1433/database"
   }
 }
 ```
-
-### 设置指南
-
-步骤 1: 配置 Claude Desktop 设置
-![步骤 1: 配置](./step1.png)
-
-步骤 2: 在 Claude 中使用数据库命令
-![步骤 2: 使用](./step2.png)
 
 ### 可用工具
 
