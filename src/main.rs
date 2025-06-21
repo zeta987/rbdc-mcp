@@ -1,24 +1,15 @@
 use anyhow::Result;
 use clap::Parser;
-use log::info;
 use std::sync::Arc;
+use tracing::{info, error};
+use tracing_subscriber::{EnvFilter};
 
 mod db_manager;
 mod handler;
 
 use crate::db_manager::DatabaseManager;
 use crate::handler::RbdcDatabaseHandler;
-
-use rust_mcp_sdk::schema::{
-    Implementation, InitializeResult, ServerCapabilities, ServerCapabilitiesTools,
-    LATEST_PROTOCOL_VERSION,
-};
-
-use rust_mcp_sdk::{
-    error::SdkResult,
-    mcp_server::{server_runtime, ServerRuntime},
-    McpServer, StdioTransport, TransportOptions,
-};
+use rmcp::{ServiceExt, transport::stdio};
 
 /// 命令行参数
 #[derive(Parser, Debug)]
@@ -47,16 +38,22 @@ async fn main() -> Result<(), anyhow::Error> {
     let args = Args::parse();
 
     // 初始化日志
-    env_logger::init_from_env(
-        env_logger::Env::default().filter_or(env_logger::DEFAULT_FILTER_ENV, &args.log_level),
-    );
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            EnvFilter::from_default_env()
+                .add_directive(args.log_level.parse()
+                    .unwrap_or_else(|_| tracing::Level::INFO.into()))
+        )
+        .with_writer(std::io::stderr)
+        .with_ansi(false)
+        .init();
 
     info!("启动RBDC MCP服务器");
     info!("数据库URL: {}", args.database_url);
 
     // 创建数据库管理器
     let db_manager = DatabaseManager::new(&args.database_url)
-        .map_err(|e|anyhow::Error::msg(e.to_string()))?;
+        .map_err(|e| anyhow::Error::msg(e.to_string()))?;
     
     // 配置连接池
     db_manager.configure_pool(args.max_connections, args.timeout).await;
@@ -67,34 +64,16 @@ async fn main() -> Result<(), anyhow::Error> {
     
     info!("数据库连接测试成功");
 
-    // STEP 1: 定义服务器详细信息和功能
-    let server_details = InitializeResult {
-        server_info: Implementation {
-            name: "RBDC MCP Server".to_string(),
-            version: "1.0.0".to_string(),
-        },
-        capabilities: ServerCapabilities {
-            tools: Some(ServerCapabilitiesTools { list_changed: None }),
-            ..Default::default()
-        },
-        meta: None,
-        instructions: Some("RBDC数据库MCP服务器，提供SQL查询、执行和状态检查工具".to_string()),
-        protocol_version: LATEST_PROTOCOL_VERSION.to_string(),
-    };
-
-    // STEP 2: 创建stdio传输
-    let transport = StdioTransport::new(TransportOptions::default())
-        .map_err(|e| anyhow::Error::msg(format!("创建传输失败: {}", e)))?;
-
-    // STEP 3: 实例化我们的自定义处理器
+    // 创建RBDC数据库处理器
     let handler = RbdcDatabaseHandler::new(Arc::new(db_manager));
 
     info!("启动RBDC MCP服务器...");
     
-    // STEP 4: 创建MCP服务器
-    let server: ServerRuntime = server_runtime::create_server(server_details, transport, handler);
+    // 启动服务器
+    let service = handler.serve(stdio()).await.inspect_err(|e| {
+        error!("服务器启动失败: {:?}", e);
+    })?;
 
-    // STEP 5: 启动服务器
-    server.start().await
-        .map_err(|e| anyhow::Error::msg(format!("服务器启动失败: {}", e)))
+    service.waiting().await?;
+    Ok(())
 }

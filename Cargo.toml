@@ -14,8 +14,12 @@ path = "src/main.rs"
 
 
 [dependencies]
-# 使用社区版rust-mcp-sdk
-rust-mcp-sdk = {version = "0.4.5", default-features = false, features = ["server", "macros", "2025_03_26"] }
+
+rmcp = { git = "https://github.com/modelcontextprotocol/rust-sdk", branch = "main", features = [
+    "server", 
+    "transport-io"
+] }
+
 anyhow = "1.0"
 tokio = { version = "1.0", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
@@ -26,6 +30,8 @@ log = "0.4"
 env_logger = "0.10"
 async-trait = "0.1"
 rbs = { version = "4.6" }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "std", "fmt"] }
 
 # RBDC dependencies
 rbdc = { version = "4.6.0" }
