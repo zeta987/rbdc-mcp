@@ -14,6 +14,21 @@ A database server based on [Model Context Protocol (MCP)](https://modelcontextpr
 
 ## Installation
 
+### Prerequisites
+
+First, you need to install Rust and Cargo:
+
+**Windows:**
+1. Visit [https://rustup.rs/](https://rustup.rs/)
+2. Download and run `rustup-init.exe`
+3. Restart your terminal to refresh environment variables
+
+**macOS/Linux:**
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source ~/.cargo/env
+```
+
 ### Method 1: Install from Git Repository (Recommended)
 ```bash
 cargo install --git https://github.com/rbatis/rbdc-mcp.git

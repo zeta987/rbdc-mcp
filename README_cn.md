@@ -16,6 +16,21 @@
 
 ## 安装
 
+### 前置要求
+
+首先需要安装 Rust 和 Cargo：
+
+**Windows:**
+1. 访问 [https://rustup.rs/](https://rustup.rs/)
+2. 下载并运行 `rustup-init.exe`
+3. 重启终端以使环境变量生效
+
+**macOS/Linux:**
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source ~/.cargo/env
+```
+
 ### 方式一：从 Git 仓库安装（推荐）
 ```bash
 cargo install --git https://github.com/rbatis/rbdc-mcp.git
