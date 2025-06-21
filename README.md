@@ -1,25 +1,27 @@
 # RBDC MCP Server
 
-基于 [Model Context Protocol (MCP)](https://modelcontextprotocol.io) 的数据库服务器，支持 SQLite、MySQL、PostgreSQL、MSSQL 四种数据库。
+A database server based on [Model Context Protocol (MCP)](https://modelcontextprotocol.io), supporting SQLite, MySQL, PostgreSQL, and MSSQL databases.
 
-## 安装
+**🇨🇳 中文文档 / Chinese Documentation**: [README_cn.md](./README_cn.md)
 
-### 方式一：从 Git 仓库安装（推荐）
+## Installation
+
+### Method 1: Install from Git Repository (Recommended)
 ```bash
 cargo install --git https://github.com/rbatis/rbdc-mcp.git
 ```
 
-### 方式二：从源码构建
+### Method 2: Build from Source
 ```bash
 git clone https://github.com/rbatis/rbdc-mcp.git
 cd rbdc-mcp
 cargo build --release
-# 可执行文件位于 target/release/rbdc-mcp
+# Executable located at target/release/rbdc-mcp
 ```
 
-## 使用
+## Usage
 
-### 启动服务器(手动，可不执行)
+### Start the Server (Manual, Optional)
 ```bash
 # SQLite
 rbdc-mcp --database-url "sqlite://./database.db"
@@ -34,9 +36,9 @@ rbdc-mcp --database-url "postgres://user:password@localhost:5432/database"
 rbdc-mcp --database-url "mssql://user:password@localhost:1433/database"
 ```
 
-### 配置 Claude Desktop
+### Configure Claude Desktop
 
-编辑配置文件：
+Edit the configuration file:
 - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 
@@ -53,7 +55,7 @@ rbdc-mcp --database-url "mssql://user:password@localhost:1433/database"
 }
 ```
 
-**Windows 完整路径示例：**
+**Windows Full Path Example:**
 ```json
 {
   "mcpServers": {
@@ -67,21 +69,34 @@ rbdc-mcp --database-url "mssql://user:password@localhost:1433/database"
 }
 ```
 
-### 可用工具
+### Available Tools
 
-配置完成后，在 Claude Desktop 中可以使用以下功能：
+After configuration, you can use the following features in Claude Desktop:
 
-- **查询数据**: "帮我查询数据库中的所有用户"
-- **修改数据**: "在数据库中添加一个新用户"  
-- **获取状态**: "显示数据库连接状态"
+- **Query Data**: "Help me query all users in the database"
+- **Modify Data**: "Add a new user to the database"  
+- **Get Status**: "Show database connection status"
 
-### 命令行参数
+### Command Line Arguments
 
-- `--database-url, -d`: 数据库连接URL（必需）
-- `--max-connections`: 最大连接数（默认：10）
-- `--timeout`: 连接超时时间秒数（默认：30）
-- `--log-level`: 日志级别（默认：info）
+- `--database-url, -d`: Database connection URL (required)
+- `--max-connections`: Maximum number of connections (default: 10)
+- `--timeout`: Connection timeout in seconds (default: 30)
+- `--log-level`: Log level (default: info)
 
-## 许可证
+## Supported Databases
+
+- **SQLite**: `sqlite://path/to/database.db`
+- **MySQL**: `mysql://user:password@host:port/database`
+- **PostgreSQL**: `postgres://user:password@host:port/database`
+- **MSSQL**: `mssql://user:password@host:port/database`
+
+## Features
+
+- **sql_query**: Execute SQL queries (SELECT statements)
+- **sql_exec**: Execute SQL modifications (INSERT/UPDATE/DELETE)  
+- **db_status**: Get database connection pool status
+
+## License
 
 Apache-2.0 
