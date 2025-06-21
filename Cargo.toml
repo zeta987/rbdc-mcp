@@ -1,15 +1,17 @@
 [package]
-name = "rbdc-mcp-server"
+name = "rbdc-mcp"
 version = "0.1.0"
 edition = "2021"
 description = "MCP (Model Context Protocol) Server for RBDC - Execute SQL queries and modifications"
 authors = ["rbdc team"]
 license = "Apache-2.0"
+repository = "https://github.com/rbatis/rbdc-mcp"
+homepage = "https://github.com/rbatis/rbdc-mcp"
 categories = ["database", "web-programming"]
 keywords = ["database", "mcp", "sql", "server", "rbdc"]
 
 [[bin]]
-name = "rbdc-mcp-server"
+name = "rbdc-mcp"
 path = "src/main.rs"
 
 

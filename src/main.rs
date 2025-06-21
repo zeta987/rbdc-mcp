@@ -13,7 +13,7 @@ use rmcp::{ServiceExt, transport::stdio};
 
 /// 命令行参数
 #[derive(Parser, Debug)]
-#[command(name = "rbdc-mcp-server")]
+#[command(name = "rbdc-mcp")]
 #[command(about = "RBDC MCP服务器 - 提供SQL查询和修改工具")]
 struct Args {
     /// 数据库连接URL

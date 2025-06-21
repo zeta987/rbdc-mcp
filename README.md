@@ -2,9 +2,15 @@
 
 基于官方 [Model Context Protocol (MCP)](https://modelcontextprotocol.io) 规范的 RBDC 数据库服务器。
 
+[![GitHub](https://img.shields.io/badge/GitHub-rbatis%2Frbdc--mcp-blue)](https://github.com/rbatis/rbdc-mcp)
+[![Rust](https://img.shields.io/badge/Rust-1.70%2B-orange)](https://www.rust-lang.org)
+[![License](https://img.shields.io/badge/License-Apache%202.0-green)](LICENSE)
+
 ## 简介
 
 这个MCP服务器为RBDC数据库连接库提供了标准的MCP工具接口，**默认支持四种数据库类型**（SQLite、MySQL、PostgreSQL、MSSQL）。项目使用官方的 [`rmcp` Rust SDK](https://github.com/modelcontextprotocol/rust-sdk) 构建，确保与MCP协议规范的完全兼容性。
+
+**项目地址**: [https://github.com/rbatis/rbdc-mcp](https://github.com/rbatis/rbdc-mcp)
 
 ## 技术栈
 
@@ -41,33 +47,60 @@
 
 ## 安装和运行
 
+### 快速安装 (推荐)
+
+通过 `cargo install` 直接从 GitHub 安装：
+
+```bash
+# 安装最新版本
+cargo install --git https://github.com/rbatis/rbdc-mcp rbdc-mcp
+
+# 安装到指定位置
+cargo install --git https://github.com/rbatis/rbdc-mcp rbdc-mcp --root ~/.local
+
+# 验证安装
+rbdc-mcp --help
+```
+
+安装完成后，可执行文件将位于 `~/.cargo/bin/rbdc-mcp`（或指定的目录）。
+
 ### 依赖要求
 
 - Rust 1.70+ (建议使用最新稳定版)
 - Cargo
 
-### 构建
+### 从源码构建
+
+如果你想从源码构建或进行开发：
 
 ```bash
-# 从项目根目录
-cd rbdc-mcp-server
+# 克隆仓库
+git clone https://github.com/rbatis/rbdc-mcp.git
+cd rbdc-mcp
+
+# 构建
 cargo build --release
+
+# 可执行文件位于 target/release/rbdc-mcp
 ```
 
 ### 运行
 
 ```bash
-# 基本用法
-./target/release/rbdc-mcp-server --database-url "sqlite://./test.db"
+# 快速开始 (使用 cargo install 安装后)
+rbdc-mcp --database-url "sqlite://./test.db"
+
+# 或者使用完整路径
+~/.cargo/bin/rbdc-mcp --database-url "sqlite://./test.db"
 
 # 配置连接池
-./target/release/rbdc-mcp-server \
+rbdc-mcp \
   --database-url "mysql://user:pass@localhost/mydb" \
   --max-connections 20 \
   --timeout 60
 
 # 设置日志级别
-./target/release/rbdc-mcp-server \
+rbdc-mcp \
   --database-url "postgres://user:pass@localhost/mydb" \
   --log-level debug
 ```
@@ -97,14 +130,44 @@ cargo build --release
 
 #### 配置示例
 
-**基础配置（支持四种数据库类型）：**
+**基础配置（使用 cargo install 安装后）：**
 ```json
 {
   "mcpServers": {
     "rbdc-mcp": {
-      "command": "C:\\path\\to\\rbdc-mcp-server.exe",
+      "command": "rbdc-mcp",
+      "args": [
+        "--database-url", "sqlite://./database.db",
+        "--log-level", "info"
+      ]
+    }
+  }
+}
+```
+
+**Windows 完整路径配置：**
+```json
+{
+  "mcpServers": {
+    "rbdc-mcp": {
+      "command": "C:\\Users\\YourName\\.cargo\\bin\\rbdc-mcp.exe",
       "args": [
         "--database-url", "sqlite://C:\\path\\to\\database.db",
+        "--log-level", "info"
+      ]
+    }
+  }
+}
+```
+
+**macOS/Linux 配置：**
+```json
+{
+  "mcpServers": {
+    "rbdc-mcp": {
+      "command": "/home/username/.cargo/bin/rbdc-mcp",
+      "args": [
+        "--database-url", "sqlite://./database.db",
         "--log-level", "info"
       ]
     }
@@ -117,7 +180,7 @@ cargo build --release
 {
   "mcpServers": {
     "rbdc-mcp": {
-      "command": "C:\\path\\to\\rbdc-mcp-server.exe",
+      "command": "rbdc-mcp",
       "args": [
         "--database-url", "mysql://user:password@localhost:3306/mydb",
         "--max-connections", "20"
@@ -132,7 +195,7 @@ cargo build --release
 {
   "mcpServers": {
     "rbdc-mcp": {
-      "command": "/path/to/rbdc-mcp-server",
+      "command": "rbdc-mcp",
       "args": [
         "--database-url", "postgres://user:password@localhost:5432/mydb",
         "--timeout", "60"
@@ -147,7 +210,7 @@ cargo build --release
 {
   "mcpServers": {
     "rbdc-mcp": {
-      "command": "C:\\path\\to\\rbdc-mcp-server.exe", 
+      "command": "rbdc-mcp", 
       "args": [
         "--database-url", "mssql://user:password@localhost:1433/mydb",
         "--max-connections", "15"
@@ -166,7 +229,7 @@ cargo build --release
   "mcp": {
     "servers": {
       "rbdc-mcp": {
-        "command": "/path/to/rbdc-mcp-server",
+        "command": "rbdc-mcp",
         "args": [
           "--database-url", "sqlite://./project.db",
           "--log-level", "debug"
@@ -182,7 +245,7 @@ cargo build --release
 对于其他支持 MCP 的客户端，一般需要配置：
 
 1. **服务器名称**: `rbdc-mcp`
-2. **命令路径**: `rbdc-mcp-server` 可执行文件的完整路径
+2. **命令路径**: `rbdc-mcp`（如果在 PATH 中）或完整路径
 3. **参数**: 数据库连接URL和其他选项
 4. **传输方式**: stdio（标准输入输出）
 
@@ -343,18 +406,24 @@ Claude 会自动调用 `sql_exec` 工具执行插入操作。
 
 ### 常见问题
 
-1. **连接数据库失败**
+1. **安装失败**
+   - 确保 Rust 版本 >= 1.70
+   - 检查网络连接是否正常
+   - 可以尝试手动克隆仓库后构建
+
+2. **连接数据库失败**
    - 检查数据库URL格式是否正确
    - 确认数据库服务器是否运行（MySQL/PostgreSQL/MSSQL）
    - 验证用户名密码是否正确
    - SQLite需要确保文件路径存在
 
-2. **Claude Desktop 无法连接**
+3. **Claude Desktop 无法连接**
    - 检查可执行文件路径是否正确
    - 确认配置文件格式是否有效
    - 查看 Claude Desktop 的错误日志
+   - 确保 `rbdc-mcp` 在系统 PATH 中或使用完整路径
 
-3. **SQL 执行错误**
+4. **SQL 执行错误**
    - 检查SQL语法是否正确
    - 确认表和字段是否存在
    - 验证SQL参数格式是否匹配
@@ -363,19 +432,29 @@ Claude 会自动调用 `sql_exec` 工具执行插入操作。
 
 1. **启用调试日志**
 ```bash
-./rbdc-mcp-server --database-url "sqlite://test.db" --log-level debug
+rbdc-mcp --database-url "sqlite://test.db" --log-level debug
 ```
 
 2. **测试数据库连接**
 ```bash
 # 可以先单独测试数据库连接
-./rbdc-mcp-server --database-url "your-db-url" --log-level debug
+rbdc-mcp --database-url "your-db-url" --log-level debug
 ```
 
 3. **手动测试MCP协议**
 ```bash
 # 启动服务器并手动发送JSON消息
-echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocol_version":"2024-11-05","client_info":{"name":"test","version":"1.0.0"},"capabilities":{}}}' | ./rbdc-mcp-server --database-url "sqlite://test.db"
+echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocol_version":"2024-11-05","client_info":{"name":"test","version":"1.0.0"},"capabilities":{}}}' | rbdc-mcp --database-url "sqlite://test.db"
+```
+
+4. **检查安装**
+```bash
+# 查看版本信息
+rbdc-mcp --help
+
+# 查看安装位置
+which rbdc-mcp  # Linux/macOS
+where rbdc-mcp  # Windows
 ```
 
 ## 开发说明
@@ -421,6 +500,8 @@ echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocol_version"
 - 遵循 Rust 代码风格
 - 添加适当的测试
 - 更新相关文档
+
+**贡献地址**: [https://github.com/rbatis/rbdc-mcp](https://github.com/rbatis/rbdc-mcp)
 
 ## 许可证
 
