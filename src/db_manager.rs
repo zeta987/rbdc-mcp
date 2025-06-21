@@ -102,13 +102,11 @@ impl DatabaseManager {
     /// Get connection pool state
     pub async fn get_pool_state(&self) -> serde_json::Value {
         let state = self.pool.state().await;
-        let mut result = serde_json::to_value(state).unwrap_or_else(|_| serde_json::json!({}));
-        
+        let mut result = serde_json::json!(state);
         // Add database type information
         if let Some(obj) = result.as_object_mut() {
             obj.insert("database_type".to_string(), serde_json::json!(format!("{:?}", self.database_type())));
         }
-        
         result
     }
 
