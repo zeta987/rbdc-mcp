@@ -113,7 +113,7 @@ rbdc-mcp --database-url "mssql://user:password@localhost:1433/database"
 ### 命令行参数
 
 - `--database-url, -d`: 数据库连接URL（必需）
-- `--max-connections`: 最大连接数（默认：10）
+- `--max-connections`: 最大连接数（默认：1）
 - `--timeout`: 连接超时时间秒数（默认：30）
 - `--log-level`: 日志级别（默认：info）
 

@@ -111,7 +111,7 @@ After configuration, you can use the following features in Claude Desktop:
 ### Command Line Arguments
 
 - `--database-url, -d`: Database connection URL (required)
-- `--max-connections`: Maximum number of connections (default: 10)
+- `--max-connections`: Maximum number of connections (default: 1)
 - `--timeout`: Connection timeout in seconds (default: 30)
 - `--log-level`: Log level (default: info)
 
