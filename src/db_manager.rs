@@ -25,7 +25,7 @@ impl DatabaseType {
             Ok(DatabaseType::SQLite)
         } else if url.starts_with("mysql://") {
             Ok(DatabaseType::MySQL)
-        } else if url.starts_with("postgres://") || url.starts_with("postgresql://") {
+        } else if url.starts_with("pg://") || url.starts_with("postgres://") || url.starts_with("postgresql://") {
             Ok(DatabaseType::PostgreSQL)
         } else if url.starts_with("mssql://") || url.starts_with("sqlserver://") {
             Ok(DatabaseType::MSSQL)
