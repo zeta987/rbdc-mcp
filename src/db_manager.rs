@@ -7,7 +7,6 @@ use rbdc::db::{Connection, Driver};
 use rbdc::pool::{ConnectionManager, Pool};
 use rbdc_pool_fast::FastPool;
 use rbs::Value;
-use std::borrow::Cow;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -42,89 +41,6 @@ pub struct DatabaseManager {
     db_type: DatabaseType,
 }
 
-/// Convert MSSQL URL format to JDBC format required by rbdc-mssql driver
-/// 
-/// rbdc-mssql expects JDBC format: jdbc:sqlserver://host:port;property=value
-/// But users typically provide: 
-/// - mssql://host:port/database?user=sa&password=pass
-/// - mssql://user:pass@host:port/database
-fn adapt_mssql_url(url: &str) -> Cow<'_, str> {
-    if url.starts_with("mssql://") || url.starts_with("sqlserver://") {
-        let without_prefix = url.trim_start_matches("mssql://")
-                               .trim_start_matches("sqlserver://");
-        
-        // Parse user:pass@host format
-        let (auth_part, rest) = if let Some(at_pos) = without_prefix.find('@') {
-            let (auth, rest) = without_prefix.split_at(at_pos);
-            let rest = &rest[1..]; // Remove @
-            (Some(auth), rest)
-        } else {
-            (None, without_prefix)
-        };
-        
-        // Extract username and password from auth part
-        let (username, password) = if let Some(auth) = auth_part {
-            if let Some((user, pass)) = auth.split_once(':') {
-                (Some(user), Some(pass))
-            } else {
-                (Some(auth), None)
-            }
-        } else {
-            (None, None)
-        };
-        
-        // Parse the rest of the URL
-        let parts: Vec<&str> = rest.splitn(2, '?').collect();
-        let host_port_db = parts[0];
-        
-        // Extract host:port and database
-        let (host_port, database) = if let Some(slash_pos) = host_port_db.rfind('/') {
-            let (hp, db) = host_port_db.split_at(slash_pos);
-            (hp, Some(&db[1..])) // Remove the leading slash
-        } else {
-            (host_port_db, None)
-        };
-        
-        // Start building JDBC URL
-        let mut jdbc_url = format!("jdbc:sqlserver://{}", host_port);
-        
-        // Add database if present
-        if let Some(db) = database {
-            jdbc_url.push_str(&format!(";Database={}", db));
-        }
-        
-        // Add username and password from auth part
-        if let Some(user) = username {
-            jdbc_url.push_str(&format!(";User={}", user));
-        }
-        if let Some(pass) = password {
-            jdbc_url.push_str(&format!(";Password={}", pass));
-        }
-        
-        // Convert query parameters from key=value&key=value to ;Key=value;Key=value
-        if parts.len() > 1 {
-            let params = parts[1];
-            for param in params.split('&') {
-                if let Some((key, value)) = param.split_once('=') {
-                    let key_capitalized = match key {
-                        "user" => "User",
-                        "password" => "Password", 
-                        "database" => "Database",
-                        _ => key,
-                    };
-                    jdbc_url.push(';');
-                    jdbc_url.push_str(key_capitalized);
-                    jdbc_url.push('=');
-                    jdbc_url.push_str(value);
-                }
-            }
-        }
-        
-        Cow::Owned(jdbc_url)
-    } else {
-        Cow::Borrowed(url)
-    }
-}
 
 impl DatabaseManager {
     /// Create a new database manager
@@ -132,17 +48,7 @@ impl DatabaseManager {
         log::debug!("Creating DatabaseManager with URL: {}", url);
         let db_type = DatabaseType::from_url(url)?;
         log::debug!("Detected database type: {:?}", db_type);
-        
-        // Convert URL format for MSSQL BEFORE creating the driver
-        let adapted_url = match db_type {
-            DatabaseType::MSSQL => {
-                let converted = adapt_mssql_url(url);
-                log::debug!("MSSQL URL converted from '{}' to '{}'", url, converted);
-                converted
-            },
-            _ => Cow::Borrowed(url),
-        };
-        
+
         let driver: Box<dyn Driver> = match db_type {
             DatabaseType::SQLite => Box::new(rbdc_sqlite::SqliteDriver {}),
             DatabaseType::MySQL => Box::new(rbdc_mysql::MysqlDriver {}),
@@ -150,7 +56,7 @@ impl DatabaseManager {
             DatabaseType::MSSQL => Box::new(rbdc_mssql::MssqlDriver {}),
         };
 
-        let manager = ConnectionManager::new(driver, adapted_url.as_ref())?;
+        let manager = ConnectionManager::new(driver, url.as_ref())?;
         let pool = FastPool::new(manager)?;
         
         Ok(Self {
