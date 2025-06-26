@@ -1,14 +1,12 @@
 use std::sync::Arc;
-use std::future::Future;
+use serde_json::Value;
 use crate::db_manager::DatabaseManager;
 
 use rmcp::{Error as McpError, ServerHandler, model::*, schemars, service::RequestContext, RoleServer};
 
-
 #[derive(Clone)]
 pub struct RbdcDatabaseHandler {
     db_manager: Arc<DatabaseManager>,
-    tool_router: ToolRouter<RbdcDatabaseHandler>,
 }
 
 impl RbdcDatabaseHandler{
@@ -17,7 +15,7 @@ impl RbdcDatabaseHandler{
             db_manager,
         }
     }
-    
+
     fn convert_params(&self, params: &[Value]) -> Vec<rbs::Value> {
         params.iter()
             .map(|v| serde_json::from_value(v.clone()).unwrap_or_default())
@@ -43,24 +41,8 @@ pub struct SqlExecParams {
     params: Vec<serde_json::Value>,
 }
 
-// Use tool_router macro to generate the tool router
-#[tool_router]
 impl RbdcDatabaseHandler {
-    pub fn new(db_manager: Arc<DatabaseManager>) -> Self {
-        Self { 
-            db_manager,
-            tool_router: Self::tool_router(),
-        }
-    }
-
-    fn convert_params(&self, params: &[serde_json::Value]) -> Vec<rbs::Value> {
-        params.iter()
-            .map(|v| serde_json::from_value(v.clone()).unwrap_or_default())
-            .collect()
-    }
-
-    #[tool(description = "Execute SQL query and return results")]
-    async fn sql_query(&self, Parameters(SqlQueryParams { sql, params }): Parameters<SqlQueryParams>) -> Result<CallToolResult, McpError> {
+    async fn sql_query(&self, SqlQueryParams { sql, params }: SqlQueryParams) -> Result<CallToolResult, McpError> {
         // Convert parameter types from serde_json::Value to rbs::Value
         let rbs_params = self.convert_params(&params);
 
@@ -74,8 +56,7 @@ impl RbdcDatabaseHandler {
         }
     }
 
-    #[tool(description = "Execute SQL modification statements (INSERT/UPDATE/DELETE)")]
-    async fn sql_exec(&self, Parameters(SqlExecParams { sql, params }): Parameters<SqlExecParams>) -> Result<CallToolResult, McpError> {
+    async fn sql_exec(&self,  SqlExecParams { sql, params }: SqlExecParams) -> Result<CallToolResult, McpError> {
         // Convert parameter types from serde_json::Value to rbs::Value
         let rbs_params = self.convert_params(&params);
 
@@ -97,7 +78,6 @@ impl RbdcDatabaseHandler {
     }
 }
 
-#[tool_handler]
 impl ServerHandler for RbdcDatabaseHandler {
     fn get_info(&self) -> ServerInfo {
         ServerInfo {
@@ -141,8 +121,8 @@ impl ServerHandler for RbdcDatabaseHandler {
                     input_schema: {
                         let schema = serde_json::to_value(schemars::schema_for!(SqlQueryParams))
                             .map_err(|e| McpError::internal_error(format!("Schema generation failed: {}", e), None))?;
-                        if let serde_json::Value::Object(map) = schema {
-                            std::sync::Arc::new(map)
+                        if let Value::Object(map) = schema {
+                            Arc::new(map)
                         } else {
                             return Err(McpError::internal_error("Invalid schema format".to_string(), None));
                         }
@@ -155,8 +135,8 @@ impl ServerHandler for RbdcDatabaseHandler {
                     input_schema: {
                         let schema = serde_json::to_value(schemars::schema_for!(SqlExecParams))
                             .map_err(|e| McpError::internal_error(format!("Schema generation failed: {}", e), None))?;
-                        if let serde_json::Value::Object(map) = schema {
-                            std::sync::Arc::new(map)
+                        if let Value::Object(map) = schema {
+                            Arc::new(map)
                         } else {
                             return Err(McpError::internal_error("Invalid schema format".to_string(), None));
                         }
@@ -168,9 +148,9 @@ impl ServerHandler for RbdcDatabaseHandler {
                     description: Some("Get database connection pool status information".into()),
                     input_schema: {
                         let mut map = serde_json::Map::new();
-                        map.insert("type".to_string(), serde_json::Value::String("object".to_string()));
-                        map.insert("properties".to_string(), serde_json::Value::Object(serde_json::Map::new()));
-                        std::sync::Arc::new(map)
+                        map.insert("type".to_string(), Value::String("object".to_string()));
+                        map.insert("properties".to_string(), Value::Object(serde_json::Map::new()));
+                        Arc::new(map)
                     },
                     annotations: None,
                 },
