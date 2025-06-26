@@ -5,7 +5,7 @@ use crate::db_manager::DatabaseManager;
 use rmcp::{
     Error as McpError, RoleServer, ServerHandler, 
     model::*, schemars,
-    service::RequestContext, tool,
+    service::RequestContext, tool
 };
 
 #[derive(Clone)]
@@ -28,10 +28,9 @@ pub struct SqlExecParams {
     sql: String,
     /// SQL parameter array, optional
     #[serde(default)]
-    params: Vec<serde_json::Value>,
+    params: Vec<Value>,
 }
 
-#[tool(tool_box)]
 impl RbdcDatabaseHandler {
     pub fn new(db_manager: Arc<DatabaseManager>) -> Self {
         Self { db_manager }
@@ -43,8 +42,7 @@ impl RbdcDatabaseHandler {
             .collect()
     }
 
-    #[tool(description = "Execute SQL query and return results")]
-    async fn sql_query(&self, #[tool(aggr)] SqlQueryParams { sql, params }: SqlQueryParams) -> Result<CallToolResult, McpError> {
+    async fn sql_query(&self, SqlQueryParams { sql, params }: SqlQueryParams) -> Result<CallToolResult, McpError> {
         // Convert parameter types from serde_json::Value to rbs::Value
         let rbs_params = self.convert_params(&params);
         
@@ -57,9 +55,7 @@ impl RbdcDatabaseHandler {
             Err(e) => Err(McpError::internal_error(format!("SQL query failed: {}", e), None))
         }
     }
-
-    #[tool(description = "Execute SQL modification statements (INSERT/UPDATE/DELETE)")]
-    async fn sql_exec(&self, #[tool(aggr)] SqlExecParams { sql, params }: SqlExecParams) -> Result<CallToolResult, McpError> {
+    async fn sql_exec(&self,  SqlExecParams { sql, params }: SqlExecParams) -> Result<CallToolResult, McpError> {
         // Convert parameter types from serde_json::Value to rbs::Value
         let rbs_params = self.convert_params(&params);
         
@@ -73,7 +69,6 @@ impl RbdcDatabaseHandler {
         }
     }
 
-    #[tool(description = "Get database connection pool status information")]
     async fn db_status(&self) -> Result<CallToolResult, McpError> {
         let status = self.db_manager.get_pool_state().await;
         let json_str = serde_json::to_string_pretty(&status)
@@ -82,7 +77,6 @@ impl RbdcDatabaseHandler {
     }
 }
 
-#[tool(tool_box)]
 impl ServerHandler for RbdcDatabaseHandler {
     fn get_info(&self) -> ServerInfo {
         ServerInfo {
