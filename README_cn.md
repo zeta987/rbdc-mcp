@@ -16,106 +16,158 @@
 
 ## 安装
 
-### 前置要求
+### 🚀 方式一：下载预编译二进制文件（推荐）
 
-首先需要安装 Rust 和 Cargo：
+从 [GitHub Releases](https://github.com/rbatis/rbdc-mcp/releases) 下载适合你平台的最新版本：
 
-**Windows:**
-1. 访问 [https://rustup.rs/](https://rustup.rs/)
-2. 下载并运行 `rustup-init.exe`
-3. 重启终端以使环境变量生效
+| 平台 | 下载文件 |
+|------|----------|
+| **Windows (x64)** | `rbdc-mcp-windows-x86_64.exe` |
+| **macOS (Intel)** | `rbdc-mcp-macos-x86_64` |
+| **macOS (Apple Silicon)** | `rbdc-mcp-macos-aarch64` |
+| **Linux (x64)** | `rbdc-mcp-linux-x86_64` |
 
-**macOS/Linux:**
-```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source ~/.cargo/env
-```
+**安装步骤：**
+1. 下载适合你平台的二进制文件
+2. **Unix/macOS**: 添加执行权限：`chmod +x rbdc-mcp-*`
+3. **可选**: 移动到PATH：`mv rbdc-mcp-* /usr/local/bin/rbdc-mcp`
+4. 测试：`./rbdc-mcp --help`
 
-### 方式一：从 Git 仓库安装（推荐）
+### 🛠️ 方式二：通过 Cargo 安装
+
+**前置要求：** 先安装 [Rust](https://rustup.rs/)。
+
 ```bash
 cargo install --git https://github.com/rbatis/rbdc-mcp.git
 ```
 
-### 方式二：从源码构建
+### 🔧 方式三：从源码构建
+
 ```bash
 git clone https://github.com/rbatis/rbdc-mcp.git
 cd rbdc-mcp
 cargo build --release
-# 可执行文件位于 target/release/rbdc-mcp
+# 可执行文件：target/release/rbdc-mcp
 ```
 
-### 设置指南
+## 🔧 快速设置
 
-步骤 1: 配置 Claude Desktop 设置
-![步骤 1: 配置](./step1.png)
+### 步骤 1：配置 Claude Desktop
 
-步骤 2: 在 Claude 中使用数据库命令
-![步骤 2: 使用](./step2.png)
-
-## 使用
-
-### 启动服务器(手动，可不执行)
-```bash
-# SQLite
-rbdc-mcp --database-url "sqlite://./database.db"
-
-# MySQL  
-rbdc-mcp --database-url "mysql://user:password@localhost:3306/database"
-
-# PostgreSQL
-rbdc-mcp --database-url "postgres://user:password@localhost:5432/database"
-
-# MSSQL
-rbdc-mcp --database-url "mssql://user:password@localhost:1433/database"
-```
-
-### 配置 Claude Desktop
-
-编辑配置文件：
+**配置文件位置：**
 - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+**基础配置：**
 
 ```json
 {
   "mcpServers": {
     "rbdc-mcp": {
       "command": "rbdc-mcp",
-      "args": [
-        "--database-url", "sqlite://./database.db"
-      ]
+      "args": ["--database-url", "sqlite://./database.db"]
     }
   }
 }
 ```
 
-**Windows 完整路径示例：**
+**不同平台配置示例：**
+
+<details>
+<summary><strong>Windows（下载的二进制文件）</strong></summary>
+
 ```json
 {
   "mcpServers": {
     "rbdc-mcp": {
-      "command": "C:\\Users\\YourName\\.cargo\\bin\\rbdc-mcp.exe",
-      "args": [
-        "--database-url", "sqlite://C:\\path\\to\\database.db"
-      ]
+      "command": "C:\\path\\to\\rbdc-mcp-windows-x86_64.exe",
+      "args": ["--database-url", "sqlite://C:\\path\\to\\database.db"]
     }
   }
 }
 ```
+</details>
 
-### 可用工具
+<details>
+<summary><strong>macOS/Linux（下载的二进制文件）</strong></summary>
 
-配置完成后，在 Claude Desktop 中可以使用以下功能：
+```json
+{
+  "mcpServers": {
+    "rbdc-mcp": {
+      "command": "/usr/local/bin/rbdc-mcp",
+      "args": ["--database-url", "sqlite:///path/to/database.db"]
+    }
+  }
+}
+```
+</details>
 
-- **查询数据**: "帮我查询数据库中的所有用户"
-- **修改数据**: "在数据库中添加一个新用户"  
-- **获取状态**: "显示数据库连接状态"
+<details>
+<summary><strong>Cargo 安装</strong></summary>
 
-### 命令行参数
+```json
+{
+  "mcpServers": {
+    "rbdc-mcp": {
+      "command": "rbdc-mcp",
+      "args": ["--database-url", "sqlite://./database.db"]
+    }
+  }
+}
+```
+</details>
 
-- `--database-url, -d`: 数据库连接URL（必需）
-- `--max-connections`: 最大连接数（默认：1）
-- `--timeout`: 连接超时时间秒数（默认：30）
-- `--log-level`: 日志级别（默认：info）
+### 步骤 2：重启 Claude Desktop
+
+保存配置后，重启 Claude Desktop 以加载 MCP 服务器。
+
+### 步骤 3：测试连接
+
+在 Claude Desktop 中尝试询问：
+- "显示数据库连接状态"
+- "我的数据库中有哪些表？"
+
+## 📊 使用示例
+
+### 自然语言数据库操作
+
+- **查询数据**: "显示数据库中的所有用户"
+- **修改数据**: "添加一个名为张三、邮箱为zhangsan@example.com的新用户"
+- **获取状态**: "数据库连接状态如何？"
+- **架构信息**: "我的数据库中有哪些表？"
+
+## 🗄️ 数据库支持
+
+| 数据库 | 连接URL格式 |
+|--------|-------------|
+| **SQLite** | `sqlite://path/to/database.db` |
+| **MySQL** | `mysql://user:password@host:port/database` |
+| **PostgreSQL** | `postgres://user:password@host:port/database` |
+| **MSSQL** | `mssql://user:password@host:port/database` |
+
+## ⚙️ 配置选项
+
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `--database-url, -d` | 数据库连接URL | *必需* |
+| `--max-connections` | 最大连接池大小 | `1` |
+| `--timeout` | 连接超时时间（秒） | `30` |
+| `--log-level` | 日志级别（error/warn/info/debug） | `info` |
+
+## 🛠️ 可用工具
+
+- **`sql_query`**: 安全执行SELECT查询
+- **`sql_exec`**: 执行INSERT/UPDATE/DELETE操作
+- **`db_status`**: 检查连接池状态
+
+## 📸 截图
+
+**步骤 1: 配置**
+![配置](./step1.png)
+
+**步骤 2: 在Claude中使用**
+![使用](./step2.png)
 
 ## 许可证
 

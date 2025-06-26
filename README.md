@@ -14,119 +14,158 @@ A database server based on [Model Context Protocol (MCP)](https://modelcontextpr
 
 ## Installation
 
-### Prerequisites
+### 🚀 Method 1: Download Pre-built Binaries (Recommended)
 
-First, you need to install Rust and Cargo:
+Download the latest release for your platform from [GitHub Releases](https://github.com/rbatis/rbdc-mcp/releases):
 
-**Windows:**
-1. Visit [https://rustup.rs/](https://rustup.rs/)
-2. Download and run `rustup-init.exe`
-3. Restart your terminal to refresh environment variables
+| Platform | Download |
+|----------|----------|
+| **Windows (x64)** | `rbdc-mcp-windows-x86_64.exe` |
+| **macOS (Intel)** | `rbdc-mcp-macos-x86_64` |
+| **macOS (Apple Silicon)** | `rbdc-mcp-macos-aarch64` |
+| **Linux (x64)** | `rbdc-mcp-linux-x86_64` |
 
-**macOS/Linux:**
-```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source ~/.cargo/env
-```
+**Installation Steps:**
+1. Download the appropriate binary for your platform
+2. **Unix/macOS**: Make it executable: `chmod +x rbdc-mcp-*`
+3. **Optional**: Move to PATH: `mv rbdc-mcp-* /usr/local/bin/rbdc-mcp`
+4. Test: `./rbdc-mcp --help`
 
-### Method 1: Install from Git Repository (Recommended)
+### 🛠️ Method 2: Install via Cargo
+
+**Prerequisites:** Install [Rust](https://rustup.rs/) first.
+
 ```bash
 cargo install --git https://github.com/rbatis/rbdc-mcp.git
 ```
 
-### Method 2: Build from Source
+### 🔧 Method 3: Build from Source
+
 ```bash
 git clone https://github.com/rbatis/rbdc-mcp.git
 cd rbdc-mcp
 cargo build --release
-# Executable located at target/release/rbdc-mcp
+# Executable: target/release/rbdc-mcp
 ```
 
-### Setup Guide
+## 🔧 Quick Setup
 
-Step 1: Configure the Claude Desktop settings
-![Step 1: Configuration](./step1.png)
+### Step 1: Configure Claude Desktop
 
-Step 2: Use database commands in Claude
-![Step 2: Usage](./step2.png)
-
-## Usage
-
-### Start the Server (Manual, Optional)
-```bash
-# SQLite
-rbdc-mcp --database-url "sqlite://./database.db"
-
-# MySQL  
-rbdc-mcp --database-url "mysql://user:password@localhost:3306/database"
-
-# PostgreSQL
-rbdc-mcp --database-url "postgres://user:password@localhost:5432/database"
-
-# MSSQL
-rbdc-mcp --database-url "mssql://user:password@localhost:1433/database"
-```
-
-### Configure Claude Desktop
-
-Edit the configuration file:
+**Configuration File Location:**
 - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+**Basic Configuration:**
 
 ```json
 {
   "mcpServers": {
     "rbdc-mcp": {
       "command": "rbdc-mcp",
-      "args": [
-        "--database-url", "sqlite://./database.db"
-      ]
+      "args": ["--database-url", "sqlite://./database.db"]
     }
   }
 }
 ```
 
-**Windows Full Path Example:**
+**Platform-Specific Examples:**
+
+<details>
+<summary><strong>Windows (Downloaded Binary)</strong></summary>
+
 ```json
 {
   "mcpServers": {
     "rbdc-mcp": {
-      "command": "C:\\Users\\YourName\\.cargo\\bin\\rbdc-mcp.exe",
-      "args": [
-        "--database-url", "sqlite://C:\\path\\to\\database.db"
-      ]
+      "command": "C:\\path\\to\\rbdc-mcp-windows-x86_64.exe",
+      "args": ["--database-url", "sqlite://C:\\path\\to\\database.db"]
     }
   }
 }
 ```
+</details>
 
-### Available Tools
+<details>
+<summary><strong>macOS/Linux (Downloaded Binary)</strong></summary>
 
-After configuration, you can use the following features in Claude Desktop:
+```json
+{
+  "mcpServers": {
+    "rbdc-mcp": {
+      "command": "/usr/local/bin/rbdc-mcp",
+      "args": ["--database-url", "sqlite:///path/to/database.db"]
+    }
+  }
+}
+```
+</details>
 
-- **Query Data**: "Help me query all users in the database"
-- **Modify Data**: "Add a new user to the database"  
-- **Get Status**: "Show database connection status"
+<details>
+<summary><strong>Cargo Installation</strong></summary>
 
-### Command Line Arguments
+```json
+{
+  "mcpServers": {
+    "rbdc-mcp": {
+      "command": "rbdc-mcp",
+      "args": ["--database-url", "sqlite://./database.db"]
+    }
+  }
+}
+```
+</details>
 
-- `--database-url, -d`: Database connection URL (required)
-- `--max-connections`: Maximum number of connections (default: 1)
-- `--timeout`: Connection timeout in seconds (default: 30)
-- `--log-level`: Log level (default: info)
+### Step 2: Restart Claude Desktop
 
-## Supported Databases
+After saving the configuration, restart Claude Desktop to load the MCP server.
 
-- **SQLite**: `sqlite://path/to/database.db`
-- **MySQL**: `mysql://user:password@host:port/database`
-- **PostgreSQL**: `postgres://user:password@host:port/database`
-- **MSSQL**: `mssql://user:password@host:port/database`
+### Step 3: Test the Connection
 
-## Features
+In Claude Desktop, try asking:
+- "Show me the database connection status"
+- "What tables are in my database?"
 
-- **sql_query**: Execute SQL queries (SELECT statements)
-- **sql_exec**: Execute SQL modifications (INSERT/UPDATE/DELETE)  
-- **db_status**: Get database connection pool status
+## 📊 Usage Examples
+
+### Natural Language Database Operations
+
+- **Query Data**: "Show me all users in the database"
+- **Modify Data**: "Add a new user named John with email john@example.com"
+- **Get Status**: "What's the database connection status?"
+- **Schema Info**: "What tables exist in my database?"
+
+## 🗄️ Database Support
+
+| Database | Connection URL Format |
+|----------|----------------------|
+| **SQLite** | `sqlite://path/to/database.db` |
+| **MySQL** | `mysql://user:password@host:port/database` |
+| **PostgreSQL** | `postgres://user:password@host:port/database` |
+| **MSSQL** | `mssql://user:password@host:port/database` |
+
+## ⚙️ Configuration Options
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `--database-url, -d` | Database connection URL | *Required* |
+| `--max-connections` | Maximum connection pool size | `1` |
+| `--timeout` | Connection timeout (seconds) | `30` |
+| `--log-level` | Log level (error/warn/info/debug) | `info` |
+
+## 🛠️ Available Tools
+
+- **`sql_query`**: Execute SELECT queries safely
+- **`sql_exec`**: Execute INSERT/UPDATE/DELETE operations
+- **`db_status`**: Check connection pool status
+
+## 📸 Screenshots
+
+**Step 1: Configuration**
+![Configuration](./step1.png)
+
+**Step 2: Usage in Claude**
+![Usage](./step2.png)
 
 ## License
 
