@@ -53,7 +53,10 @@ async fn main() -> Result<(), anyhow::Error> {
 
     // Create database manager
     let db_manager = DatabaseManager::new(&args.database_url)
-        .map_err(|e| anyhow::Error::msg(e.to_string()))?;
+        .map_err(|e| {
+            error!("Failed to create database manager: {}", e);
+            anyhow::Error::msg(e.to_string())
+        })?;
     
     // Configure connection pool
     db_manager.configure_pool(args.max_connections, args.timeout).await;

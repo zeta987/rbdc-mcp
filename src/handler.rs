@@ -1,12 +1,14 @@
 use std::sync::Arc;
-use serde_json::Value;
+use std::future::Future;
 use crate::db_manager::DatabaseManager;
 
 use rmcp::{Error as McpError, ServerHandler, model::*, schemars, service::RequestContext, RoleServer};
 
+
 #[derive(Clone)]
 pub struct RbdcDatabaseHandler {
     db_manager: Arc<DatabaseManager>,
+    tool_router: ToolRouter<RbdcDatabaseHandler>,
 }
 
 impl RbdcDatabaseHandler{
@@ -41,8 +43,24 @@ pub struct SqlExecParams {
     params: Vec<serde_json::Value>,
 }
 
+// Use tool_router macro to generate the tool router
+#[tool_router]
 impl RbdcDatabaseHandler {
-    async fn sql_query(&self, SqlQueryParams { sql, params }: SqlQueryParams) -> Result<CallToolResult, McpError> {
+    pub fn new(db_manager: Arc<DatabaseManager>) -> Self {
+        Self { 
+            db_manager,
+            tool_router: Self::tool_router(),
+        }
+    }
+
+    fn convert_params(&self, params: &[serde_json::Value]) -> Vec<rbs::Value> {
+        params.iter()
+            .map(|v| serde_json::from_value(v.clone()).unwrap_or_default())
+            .collect()
+    }
+
+    #[tool(description = "Execute SQL query and return results")]
+    async fn sql_query(&self, Parameters(SqlQueryParams { sql, params }): Parameters<SqlQueryParams>) -> Result<CallToolResult, McpError> {
         // Convert parameter types from serde_json::Value to rbs::Value
         let rbs_params = self.convert_params(&params);
 
@@ -56,7 +74,8 @@ impl RbdcDatabaseHandler {
         }
     }
 
-    async fn sql_exec(&self,  SqlExecParams { sql, params }: SqlExecParams) -> Result<CallToolResult, McpError> {
+    #[tool(description = "Execute SQL modification statements (INSERT/UPDATE/DELETE)")]
+    async fn sql_exec(&self, Parameters(SqlExecParams { sql, params }): Parameters<SqlExecParams>) -> Result<CallToolResult, McpError> {
         // Convert parameter types from serde_json::Value to rbs::Value
         let rbs_params = self.convert_params(&params);
 
@@ -78,6 +97,7 @@ impl RbdcDatabaseHandler {
     }
 }
 
+#[tool_handler]
 impl ServerHandler for RbdcDatabaseHandler {
     fn get_info(&self) -> ServerInfo {
         ServerInfo {
