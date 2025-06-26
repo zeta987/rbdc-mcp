@@ -1,26 +1,18 @@
 use std::sync::Arc;
-use serde_json::Value;
+use std::future::Future;
 use crate::db_manager::DatabaseManager;
 
-use rmcp::{Error as McpError, ServerHandler, model::*, schemars, service::RequestContext, RoleServer};
+use rmcp::{
+    Error as McpError, RoleServer, ServerHandler,
+    handler::server::{router::tool::ToolRouter, tool::Parameters},
+    model::*, schemars,
+    service::RequestContext, tool, tool_handler, tool_router,
+};
 
 #[derive(Clone)]
 pub struct RbdcDatabaseHandler {
     db_manager: Arc<DatabaseManager>,
-}
-
-impl RbdcDatabaseHandler{
-    pub fn new(db_manager: Arc<DatabaseManager>) -> Self {
-        Self {
-            db_manager,
-        }
-    }
-
-    fn convert_params(&self, params: &[Value]) -> Vec<rbs::Value> {
-        params.iter()
-            .map(|v| serde_json::from_value(v.clone()).unwrap_or_default())
-            .collect()
-    }
+    tool_router: ToolRouter<RbdcDatabaseHandler>,
 }
 
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
@@ -41,8 +33,24 @@ pub struct SqlExecParams {
     params: Vec<serde_json::Value>,
 }
 
+// Use tool_router macro to generate the tool router
+#[tool_router]
 impl RbdcDatabaseHandler {
-    async fn sql_query(&self, SqlQueryParams { sql, params }: SqlQueryParams) -> Result<CallToolResult, McpError> {
+    pub fn new(db_manager: Arc<DatabaseManager>) -> Self {
+        Self {
+            db_manager,
+            tool_router: Self::tool_router(),
+        }
+    }
+
+    fn convert_params(&self, params: &[serde_json::Value]) -> Vec<rbs::Value> {
+        params.iter()
+            .map(|v| serde_json::from_value(v.clone()).unwrap_or_default())
+            .collect()
+    }
+
+    #[tool(description = "Execute SQL query and return results")]
+    async fn sql_query(&self, Parameters(SqlQueryParams { sql, params }): Parameters<SqlQueryParams>) -> Result<CallToolResult, McpError> {
         // Convert parameter types from serde_json::Value to rbs::Value
         let rbs_params = self.convert_params(&params);
 
@@ -56,7 +64,8 @@ impl RbdcDatabaseHandler {
         }
     }
 
-    async fn sql_exec(&self,  SqlExecParams { sql, params }: SqlExecParams) -> Result<CallToolResult, McpError> {
+    #[tool(description = "Execute SQL modification statements (INSERT/UPDATE/DELETE)")]
+    async fn sql_exec(&self, Parameters(SqlExecParams { sql, params }): Parameters<SqlExecParams>) -> Result<CallToolResult, McpError> {
         // Convert parameter types from serde_json::Value to rbs::Value
         let rbs_params = self.convert_params(&params);
 
@@ -70,6 +79,7 @@ impl RbdcDatabaseHandler {
         }
     }
 
+    #[tool(description = "Get database connection pool status information")]
     async fn db_status(&self) -> Result<CallToolResult, McpError> {
         let status = self.db_manager.get_pool_state().await;
         let json_str = serde_json::to_string_pretty(&status)
@@ -78,6 +88,7 @@ impl RbdcDatabaseHandler {
     }
 }
 
+#[tool_handler]
 impl ServerHandler for RbdcDatabaseHandler {
     fn get_info(&self) -> ServerInfo {
         ServerInfo {
@@ -93,69 +104,11 @@ impl ServerHandler for RbdcDatabaseHandler {
         }
     }
 
-    async fn call_tool(&self, request: CallToolRequestParam, _context: RequestContext<RoleServer>) -> Result<CallToolResult, McpError> {
-        match request.name.as_ref() {
-            "sql_query" => {
-                let params: SqlQueryParams = serde_json::from_value(serde_json::Value::Object(request.arguments.unwrap_or_default()))
-                    .map_err(|e| McpError::invalid_params(format!("Invalid parameters: {}", e), None))?;
-                self.sql_query(params).await
-            }
-            "sql_exec" => {
-                let params: SqlExecParams = serde_json::from_value(serde_json::Value::Object(request.arguments.unwrap_or_default()))
-                    .map_err(|e| McpError::invalid_params(format!("Invalid parameters: {}", e), None))?;
-                self.sql_exec(params).await
-            }
-            "db_status" => {
-                self.db_status().await
-            }
-            _ => Err(McpError::method_not_found::<CallToolRequestMethod>())
-        }
+    async fn initialize(
+        &self,
+        _request: InitializeRequestParam,
+        _context: RequestContext<RoleServer>,
+    ) -> Result<InitializeResult, McpError> {
+        Ok(self.get_info())
     }
-
-    async fn list_tools(&self, _request: Option<PaginatedRequestParam>, _context: RequestContext<RoleServer>) -> Result<ListToolsResult, McpError> {
-        Ok(ListToolsResult {
-            tools: vec![
-                Tool {
-                    name: "sql_query".into(),
-                    description: Some("Execute SQL query and return results".into()),
-                    input_schema: {
-                        let schema = serde_json::to_value(schemars::schema_for!(SqlQueryParams))
-                            .map_err(|e| McpError::internal_error(format!("Schema generation failed: {}", e), None))?;
-                        if let Value::Object(map) = schema {
-                            Arc::new(map)
-                        } else {
-                            return Err(McpError::internal_error("Invalid schema format".to_string(), None));
-                        }
-                    },
-                    annotations: None,
-                },
-                Tool {
-                    name: "sql_exec".into(),
-                    description: Some("Execute SQL modification statements (INSERT/UPDATE/DELETE)".into()),
-                    input_schema: {
-                        let schema = serde_json::to_value(schemars::schema_for!(SqlExecParams))
-                            .map_err(|e| McpError::internal_error(format!("Schema generation failed: {}", e), None))?;
-                        if let Value::Object(map) = schema {
-                            Arc::new(map)
-                        } else {
-                            return Err(McpError::internal_error("Invalid schema format".to_string(), None));
-                        }
-                    },
-                    annotations: None,
-                },
-                Tool {
-                    name: "db_status".into(),
-                    description: Some("Get database connection pool status information".into()),
-                    input_schema: {
-                        let mut map = serde_json::Map::new();
-                        map.insert("type".to_string(), Value::String("object".to_string()));
-                        map.insert("properties".to_string(), Value::Object(serde_json::Map::new()));
-                        Arc::new(map)
-                    },
-                    annotations: None,
-                },
-            ],
-            next_cursor: None,
-        })
-    }
-}
+} 
