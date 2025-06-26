@@ -19,7 +19,8 @@ path = "src/main.rs"
 
 rmcp = { git = "https://github.com/modelcontextprotocol/rust-sdk", branch = "main", features = [
     "server", 
-    "transport-io"
+    "transport-io",
+    "macros"
 ] }
 
 anyhow = "1.0"
