@@ -26,10 +26,38 @@ Download the latest release for your platform from [GitHub Releases](https://git
 | **Linux (x64)** | `rbdc-mcp-linux-x86_64` |
 
 **Installation Steps:**
-1. Download the appropriate binary for your platform
-2. **Unix/macOS**: Make it executable: `chmod +x rbdc-mcp-*`
-3. **Optional**: Move to PATH: `mv rbdc-mcp-* /usr/local/bin/rbdc-mcp`
-4. Test: `./rbdc-mcp --help`
+
+**Windows:**
+1. Download `rbdc-mcp-windows-x86_64.exe`
+2. Rename to `rbdc-mcp.exe`
+3. Move to a directory, e.g., `C:\tools\rbdc-mcp.exe`
+4. Add to PATH environment variable:
+   - Right-click "This PC" → "Properties" → "Advanced system settings" → "Environment Variables"
+   - Find "Path" in "System variables", click "Edit"
+   - Add `C:\tools` to the path list
+5. Restart command prompt, test: `rbdc-mcp --help`
+
+**macOS:**
+1. Download the appropriate file:
+   - Intel chip: `rbdc-mcp-macos-x86_64`
+   - Apple Silicon: `rbdc-mcp-macos-aarch64`
+2. Rename and install:
+   ```bash
+   mv rbdc-mcp-macos-* rbdc-mcp
+   chmod +x rbdc-mcp
+   sudo mv rbdc-mcp /usr/local/bin/
+   ```
+3. Test: `rbdc-mcp --help`
+
+**Linux:**
+1. Download `rbdc-mcp-linux-x86_64`
+2. Rename and install:
+   ```bash
+   mv rbdc-mcp-linux-x86_64 rbdc-mcp
+   chmod +x rbdc-mcp
+   sudo mv rbdc-mcp /usr/local/bin/
+   ```
+3. Test: `rbdc-mcp --help`
 
 ### 🛠️ Method 2: Install via Cargo
 
@@ -72,44 +100,37 @@ cargo build --release
 **Platform-Specific Examples:**
 
 <details>
-<summary><strong>Windows (Downloaded Binary)</strong></summary>
+<summary><strong>Different Database Examples</strong></summary>
 
 ```json
 {
   "mcpServers": {
-    "rbdc-mcp": {
-      "command": "C:\\path\\to\\rbdc-mcp-windows-x86_64.exe",
-      "args": ["--database-url", "sqlite://C:\\path\\to\\database.db"]
-    }
-  }
-}
-```
-</details>
-
-<details>
-<summary><strong>macOS/Linux (Downloaded Binary)</strong></summary>
-
-```json
-{
-  "mcpServers": {
-    "rbdc-mcp": {
-      "command": "/usr/local/bin/rbdc-mcp",
-      "args": ["--database-url", "sqlite:///path/to/database.db"]
-    }
-  }
-}
-```
-</details>
-
-<details>
-<summary><strong>Cargo Installation</strong></summary>
-
-```json
-{
-  "mcpServers": {
-    "rbdc-mcp": {
+    "rbdc-mcp-sqlite": {
       "command": "rbdc-mcp",
       "args": ["--database-url", "sqlite://./database.db"]
+    },
+    "rbdc-mcp-mysql": {
+      "command": "rbdc-mcp",
+      "args": ["--database-url", "mysql://user:password@localhost:3306/database"]
+    },
+    "rbdc-mcp-postgres": {
+      "command": "rbdc-mcp",
+      "args": ["--database-url", "postgres://user:password@localhost:5432/database"]
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><strong>Windows Full Path (if not in PATH)</strong></summary>
+
+```json
+{
+  "mcpServers": {
+    "rbdc-mcp": {
+      "command": "C:\\tools\\rbdc-mcp.exe",
+      "args": ["--database-url", "sqlite://C:\\path\\to\\database.db"]
     }
   }
 }

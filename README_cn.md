@@ -28,10 +28,38 @@
 | **Linux (x64)** | `rbdc-mcp-linux-x86_64` |
 
 **安装步骤：**
-1. 下载适合你平台的二进制文件
-2. **Unix/macOS**: 添加执行权限：`chmod +x rbdc-mcp-*`
-3. **可选**: 移动到PATH：`mv rbdc-mcp-* /usr/local/bin/rbdc-mcp`
-4. 测试：`./rbdc-mcp --help`
+
+**Windows:**
+1. 下载 `rbdc-mcp-windows-x86_64.exe`
+2. 重命名为 `rbdc-mcp.exe`
+3. 将文件移动到一个目录，如 `C:\tools\rbdc-mcp.exe`
+4. 添加到环境变量PATH：
+   - 右键"此电脑" → "属性" → "高级系统设置" → "环境变量"
+   - 在"系统变量"中找到"Path"，点击"编辑"
+   - 添加 `C:\tools` 到路径列表
+5. 重启命令行，测试：`rbdc-mcp --help`
+
+**macOS:**
+1. 下载对应文件：
+   - Intel芯片：`rbdc-mcp-macos-x86_64`
+   - Apple Silicon：`rbdc-mcp-macos-aarch64`
+2. 重命名并移动：
+   ```bash
+   mv rbdc-mcp-macos-* rbdc-mcp
+   chmod +x rbdc-mcp
+   sudo mv rbdc-mcp /usr/local/bin/
+   ```
+3. 测试：`rbdc-mcp --help`
+
+**Linux:**
+1. 下载 `rbdc-mcp-linux-x86_64`
+2. 重命名并安装：
+   ```bash
+   mv rbdc-mcp-linux-x86_64 rbdc-mcp
+   chmod +x rbdc-mcp
+   sudo mv rbdc-mcp /usr/local/bin/
+   ```
+3. 测试：`rbdc-mcp --help`
 
 ### 🛠️ 方式二：通过 Cargo 安装
 
@@ -74,49 +102,44 @@ cargo build --release
 **不同平台配置示例：**
 
 <details>
-<summary><strong>Windows（下载的二进制文件）</strong></summary>
+<summary><strong>不同数据库示例</strong></summary>
+
+```json
+{
+  "mcpServers": {
+    "rbdc-mcp-sqlite": {
+      "command": "rbdc-mcp",
+      "args": ["--database-url", "sqlite://./database.db"]
+    },
+    "rbdc-mcp-mysql": {
+      "command": "rbdc-mcp",
+      "args": ["--database-url", "mysql://user:password@localhost:3306/database"]
+    },
+    "rbdc-mcp-postgres": {
+      "command": "rbdc-mcp",
+      "args": ["--database-url", "postgres://user:password@localhost:5432/database"]
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><strong>Windows 完整路径（如果未添加到PATH）</strong></summary>
 
 ```json
 {
   "mcpServers": {
     "rbdc-mcp": {
-      "command": "C:\\path\\to\\rbdc-mcp-windows-x86_64.exe",
+      "command": "C:\\tools\\rbdc-mcp.exe",
       "args": ["--database-url", "sqlite://C:\\path\\to\\database.db"]
     }
   }
 }
 ```
-</details>
+</details></details>
 
-<details>
-<summary><strong>macOS/Linux（下载的二进制文件）</strong></summary>
-
-```json
-{
-  "mcpServers": {
-    "rbdc-mcp": {
-      "command": "/usr/local/bin/rbdc-mcp",
-      "args": ["--database-url", "sqlite:///path/to/database.db"]
-    }
-  }
-}
-```
-</details>
-
-<details>
-<summary><strong>Cargo 安装</strong></summary>
-
-```json
-{
-  "mcpServers": {
-    "rbdc-mcp": {
-      "command": "rbdc-mcp",
-      "args": ["--database-url", "sqlite://./database.db"]
-    }
-  }
-}
-```
-</details>
+<parameter name="old_str_start_line_number">111
 
 ### 步骤 2：重启 Claude Desktop
 
