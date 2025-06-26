@@ -2,15 +2,25 @@ use std::sync::Arc;
 use serde_json::Value;
 use crate::db_manager::DatabaseManager;
 
-use rmcp::{
-    Error as McpError, RoleServer, ServerHandler, 
-    model::*, schemars,
-    service::RequestContext, tool
-};
+use rmcp::{Error as McpError, ServerHandler, model::*, schemars, service::RequestContext, RoleServer};
 
 #[derive(Clone)]
 pub struct RbdcDatabaseHandler {
     db_manager: Arc<DatabaseManager>,
+}
+
+impl RbdcDatabaseHandler{
+    pub fn new(db_manager: Arc<DatabaseManager>) -> Self {
+        Self {
+            db_manager,
+        }
+    }
+    
+    fn convert_params(&self, params: &[Value]) -> Vec<rbs::Value> {
+        params.iter()
+            .map(|v| serde_json::from_value(v.clone()).unwrap_or_default())
+            .collect()
+    }
 }
 
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
@@ -28,24 +38,14 @@ pub struct SqlExecParams {
     sql: String,
     /// SQL parameter array, optional
     #[serde(default)]
-    params: Vec<Value>,
+    params: Vec<serde_json::Value>,
 }
 
 impl RbdcDatabaseHandler {
-    pub fn new(db_manager: Arc<DatabaseManager>) -> Self {
-        Self { db_manager }
-    }
-
-    fn convert_params(&self, params: &[Value]) -> Vec<rbs::Value> {
-        params.iter()
-            .map(|v| serde_json::from_value(v.clone()).unwrap_or_default())
-            .collect()
-    }
-
     async fn sql_query(&self, SqlQueryParams { sql, params }: SqlQueryParams) -> Result<CallToolResult, McpError> {
         // Convert parameter types from serde_json::Value to rbs::Value
         let rbs_params = self.convert_params(&params);
-        
+
         match self.db_manager.execute_query(&sql, rbs_params).await {
             Ok(results) => {
                 let json_str = serde_json::to_string_pretty(&results)
@@ -55,10 +55,11 @@ impl RbdcDatabaseHandler {
             Err(e) => Err(McpError::internal_error(format!("SQL query failed: {}", e), None))
         }
     }
+
     async fn sql_exec(&self,  SqlExecParams { sql, params }: SqlExecParams) -> Result<CallToolResult, McpError> {
         // Convert parameter types from serde_json::Value to rbs::Value
         let rbs_params = self.convert_params(&params);
-        
+
         match self.db_manager.execute_modification(&sql, rbs_params).await {
             Ok(result) => {
                 let result_str = serde_json::to_string_pretty(&result)
@@ -92,11 +93,69 @@ impl ServerHandler for RbdcDatabaseHandler {
         }
     }
 
-    async fn initialize(
-        &self,
-        _request: InitializeRequestParam,
-        _context: RequestContext<RoleServer>,
-    ) -> Result<InitializeResult, McpError> {
-        Ok(self.get_info())
+    async fn call_tool(&self, request: CallToolRequestParam, _context: RequestContext<RoleServer>) -> Result<CallToolResult, McpError> {
+        match request.name.as_ref() {
+            "sql_query" => {
+                let params: SqlQueryParams = serde_json::from_value(serde_json::Value::Object(request.arguments.unwrap_or_default()))
+                    .map_err(|e| McpError::invalid_params(format!("Invalid parameters: {}", e), None))?;
+                self.sql_query(params).await
+            }
+            "sql_exec" => {
+                let params: SqlExecParams = serde_json::from_value(serde_json::Value::Object(request.arguments.unwrap_or_default()))
+                    .map_err(|e| McpError::invalid_params(format!("Invalid parameters: {}", e), None))?;
+                self.sql_exec(params).await
+            }
+            "db_status" => {
+                self.db_status().await
+            }
+            _ => Err(McpError::method_not_found::<CallToolRequestMethod>())
+        }
     }
-} 
+
+    async fn list_tools(&self, _request: Option<PaginatedRequestParam>, _context: RequestContext<RoleServer>) -> Result<ListToolsResult, McpError> {
+        Ok(ListToolsResult {
+            tools: vec![
+                Tool {
+                    name: "sql_query".into(),
+                    description: Some("Execute SQL query and return results".into()),
+                    input_schema: {
+                        let schema = serde_json::to_value(schemars::schema_for!(SqlQueryParams))
+                            .map_err(|e| McpError::internal_error(format!("Schema generation failed: {}", e), None))?;
+                        if let serde_json::Value::Object(map) = schema {
+                            std::sync::Arc::new(map)
+                        } else {
+                            return Err(McpError::internal_error("Invalid schema format".to_string(), None));
+                        }
+                    },
+                    annotations: None,
+                },
+                Tool {
+                    name: "sql_exec".into(),
+                    description: Some("Execute SQL modification statements (INSERT/UPDATE/DELETE)".into()),
+                    input_schema: {
+                        let schema = serde_json::to_value(schemars::schema_for!(SqlExecParams))
+                            .map_err(|e| McpError::internal_error(format!("Schema generation failed: {}", e), None))?;
+                        if let serde_json::Value::Object(map) = schema {
+                            std::sync::Arc::new(map)
+                        } else {
+                            return Err(McpError::internal_error("Invalid schema format".to_string(), None));
+                        }
+                    },
+                    annotations: None,
+                },
+                Tool {
+                    name: "db_status".into(),
+                    description: Some("Get database connection pool status information".into()),
+                    input_schema: {
+                        let mut map = serde_json::Map::new();
+                        map.insert("type".to_string(), serde_json::Value::String("object".to_string()));
+                        map.insert("properties".to_string(), serde_json::Value::Object(serde_json::Map::new()));
+                        std::sync::Arc::new(map)
+                    },
+                    annotations: None,
+                },
+            ],
+            next_cursor: None,
+        })
+    }
+}
