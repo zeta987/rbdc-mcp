@@ -87,7 +87,7 @@ impl ServerHandler for RbdcDatabaseHandler {
                 .build(),
             server_info: Implementation {
                 name: "RBDC MCP Server".to_string(),
-                version: "1.0.0".to_string(),
+                version: env!("CARGO_PKG_VERSION").to_string(),
             },
             instructions: Some("RBDC database MCP server providing SQL query, execution and status check tools. Supports sql_query (query), sql_exec (modification) and db_status (status check) tools.".to_string()),
         }
