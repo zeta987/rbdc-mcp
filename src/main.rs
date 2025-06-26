@@ -21,7 +21,7 @@ struct Args {
     database_url: String,
 
     /// Maximum number of connections
-    #[arg(long, default_value = "10")]
+    #[arg(long, default_value = "1")]
     max_connections: u64,
 
     /// Connection timeout in seconds
