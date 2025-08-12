@@ -28,7 +28,7 @@ Download the latest release for your platform from [GitHub Releases](https://git
 **Installation Steps:**
 
 **Windows:**
-1. Download `rbdc-mcp-windows-x86_64.exe`
+1. Download (`rbdc-mcp-windows-x86_64.exe`)[https://github.com/rbatis/rbdc-mcp/releases]
 2. Rename to `rbdc-mcp.exe`
 3. Move to a directory, e.g., `C:\tools\rbdc-mcp.exe`
 4. Add to PATH environment variable:
