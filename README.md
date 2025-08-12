@@ -39,8 +39,8 @@ Download the latest release for your platform from [GitHub Releases](https://git
 
 **macOS:**
 1. Download the appropriate file:
-   - Intel chip: `rbdc-mcp-macos-x86_64`
-   - Apple Silicon: `rbdc-mcp-macos-aarch64`
+   - Intel chip: (`rbdc-mcp-macos-x86_64`)[https://github.com/rbatis/rbdc-mcp/releases]
+   - Apple Silicon: (`rbdc-mcp-macos-aarch64`)[https://github.com/rbatis/rbdc-mcp/releases]
 2. Rename and install:
    ```bash
    mv rbdc-mcp-macos-* rbdc-mcp
