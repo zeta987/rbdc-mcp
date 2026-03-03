@@ -17,7 +17,7 @@ path = "src/main.rs"
 
 [dependencies]
 
-rmcp = { version = "0.15.0",features = ["server", "transport-io"]}
+rmcp = { version = "0.17.0",features = ["server", "transport-io"]}
 
 anyhow = "1.0"
 tokio = { version = "1.0", features = ["full"] }
